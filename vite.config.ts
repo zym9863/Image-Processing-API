@@ -16,8 +16,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        ssr: 'src/index.tsx' // 修正为相对路径，避免 URL 编码问题
+        ssr: 'src/index.tsx'
       }
-    }
+    },
+    emptyOutDir: false
   }
 })
