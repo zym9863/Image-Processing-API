@@ -8,6 +8,11 @@ export interface UploadedFile {
   buffer: Uint8Array;
 }
 
+export interface FormField {
+  name: string;
+  value: string;
+}
+
 export interface UploadOptions {
   maxFileSize?: number; // 最大文件大小（字节）
   allowedTypes?: string[]; // 允许的MIME类型
@@ -23,11 +28,15 @@ const DEFAULT_OPTIONS: UploadOptions = {
 /**
  * 解析multipart/form-data
  */
-async function parseMultipartData(body: ArrayBuffer, boundary: string): Promise<Map<string, UploadedFile[]>> {
+async function parseMultipartData(body: ArrayBuffer, boundary: string): Promise<{
+  files: Map<string, UploadedFile[]>;
+  fields: Map<string, string>;
+}> {
   const decoder = new TextDecoder();
   const data = new Uint8Array(body);
   const boundaryBytes = new TextEncoder().encode(`--${boundary}`);
   const files = new Map<string, UploadedFile[]>();
+  const fields = new Map<string, string>();
 
   let start = 0;
   let end = 0;
@@ -40,13 +49,17 @@ async function parseMultipartData(body: ArrayBuffer, boundary: string): Promise<
     if (start > 0) {
       // 处理当前部分
       const partData = data.slice(start, boundaryIndex);
-      const file = await parsePart(partData);
-      if (file) {
-        const fieldName = file.fieldName;
-        if (!files.has(fieldName)) {
-          files.set(fieldName, []);
+      const result = await parsePart(partData);
+      if (result) {
+        if (result.type === 'file') {
+          const fieldName = result.fieldName;
+          if (!files.has(fieldName)) {
+            files.set(fieldName, []);
+          }
+          files.get(fieldName)!.push(result.file!);
+        } else if (result.type === 'field') {
+          fields.set(result.fieldName, result.value!);
         }
-        files.get(fieldName)!.push(file.file);
       }
     }
 
@@ -57,7 +70,7 @@ async function parseMultipartData(body: ArrayBuffer, boundary: string): Promise<
     }
   }
 
-  return files;
+  return { files, fields };
 }
 
 /**
@@ -80,7 +93,11 @@ function findBoundary(data: Uint8Array, boundary: Uint8Array, start: number): nu
 /**
  * 解析单个部分
  */
-async function parsePart(data: Uint8Array): Promise<{ fieldName: string; file: UploadedFile } | null> {
+async function parsePart(data: Uint8Array): Promise<
+  | { type: 'file'; fieldName: string; file: UploadedFile }
+  | { type: 'field'; fieldName: string; value: string }
+  | null
+> {
   const decoder = new TextDecoder();
   
   // 查找头部结束位置（双CRLF）
@@ -100,18 +117,26 @@ async function parsePart(data: Uint8Array): Promise<{ fieldName: string; file: U
   const filename = dispositionMatch[2];
   const contentType = typeMatch ? typeMatch[1].trim() : 'application/octet-stream';
 
-  // 只处理文件上传（有filename的字段）
-  if (!filename) return null;
-
-  return {
-    fieldName,
-    file: {
-      name: filename,
-      type: contentType,
-      size: bodyData.length,
-      buffer: new Uint8Array(bodyData)
-    }
-  };
+  // 如果有filename，则是文件字段
+  if (filename) {
+    return {
+      type: 'file',
+      fieldName,
+      file: {
+        name: filename,
+        type: contentType,
+        size: bodyData.length,
+        buffer: new Uint8Array(bodyData)
+      }
+    };
+  } else {
+    // 否则是普通文本字段
+    return {
+      type: 'field',
+      fieldName,
+      value: decoder.decode(bodyData).trim()
+    };
+  }
 }
 
 /**
@@ -173,7 +198,7 @@ export function uploadMiddleware(options: UploadOptions = {}) {
       const body = await c.req.arrayBuffer();
 
       // 解析multipart数据
-      const filesMap = await parseMultipartData(body, boundary);
+      const { files: filesMap, fields } = await parseMultipartData(body, boundary);
       const allFiles: UploadedFile[] = [];
 
       // 验证所有文件
@@ -194,6 +219,7 @@ export function uploadMiddleware(options: UploadOptions = {}) {
 
       // 将文件信息添加到上下文
       c.set('files', filesMap);
+      c.set('fields', fields);
       c.set('uploadedFiles', allFiles);
 
       await next();
@@ -221,6 +247,14 @@ export function getUploadedFile(c: Context, fieldName: string): UploadedFile | n
   }
   const files = filesMap.get(fieldName)!;
   return files.length > 0 ? files[0] : null;
+}
+
+/**
+ * 获取表单字段
+ */
+export function getFormField(c: Context, fieldName: string): string | null {
+  const fields: Map<string, string> = c.get('fields');
+  return fields?.get(fieldName) || null;
 }
 
 export default uploadMiddleware;

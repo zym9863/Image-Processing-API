@@ -51,7 +51,7 @@ pnpm deploy
 
 ### 基础信息
 
-- **基础URL**: `http://localhost:8787` (开发环境)
+- **基础URL**: `http://localhost:5173` (开发环境)
 - **Content-Type**: `multipart/form-data` (文件上传)
 - **图片字段名**: `image`
 
@@ -227,7 +227,7 @@ pnpm deploy
 #### 基础图片处理
 
 ```bash
-curl -X POST http://localhost:8787/api/images/process \
+curl -X POST http://localhost:5173/api/images/process \
   -F "image=@example.jpg" \
   -F "options={\"width\":800,\"height\":600,\"format\":\"webp\",\"quality\":80}"
 ```
@@ -235,14 +235,14 @@ curl -X POST http://localhost:8787/api/images/process \
 #### 获取图片信息
 
 ```bash
-curl -X POST http://localhost:8787/api/images/info \
+curl -X POST http://localhost:5173/api/images/info \
   -F "image=@example.jpg"
 ```
 
 #### 调整大小
 
 ```bash
-curl -X POST http://localhost:8787/api/images/resize \
+curl -X POST http://localhost:5173/api/images/resize \
   -F "image=@example.jpg" \
   -F "options={\"width\":400,\"height\":300,\"fit\":\"cover\"}"
 ```
@@ -250,7 +250,7 @@ curl -X POST http://localhost:8787/api/images/resize \
 #### 格式转换
 
 ```bash
-curl -X POST http://localhost:8787/api/images/convert/webp?quality=90 \
+curl -X POST http://localhost:5173/api/images/convert/webp?quality=90 \
   -F "image=@example.jpg"
 ```
 
@@ -258,11 +258,11 @@ curl -X POST http://localhost:8787/api/images/convert/webp?quality=90 \
 
 ```bash
 # 灰度滤镜
-curl -X POST http://localhost:8787/api/images/filter/grayscale \
+curl -X POST http://localhost:5173/api/images/filter/grayscale \
   -F "image=@example.jpg"
 
 # 模糊滤镜
-curl -X POST http://localhost:8787/api/images/filter/blur?sigma=2 \
+curl -X POST http://localhost:5173/api/images/filter/blur?sigma=2 \
   -F "image=@example.jpg"
 ```
 
@@ -307,7 +307,7 @@ with open('example.jpg', 'rb') as f:
     }
 
     response = requests.post(
-        'http://localhost:8787/api/images/process',
+        'http://localhost:5173/api/images/process',
         files=files,
         data=data
     )

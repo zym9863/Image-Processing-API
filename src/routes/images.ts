@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { ImageProcessor } from '../utils/imageProcessor';
-import { uploadMiddleware, getUploadedFile, getUploadedFiles } from '../middleware/upload';
+import { uploadMiddleware, getUploadedFile, getUploadedFiles, getFormField } from '../middleware/upload';
 import {
   imageProcessingSchema,
   cropSchema,
@@ -28,18 +28,30 @@ images.use('*', uploadMiddleware({
  * POST /images/process
  */
 images.post('/process',
-  zValidator('json', imageProcessingSchema, (result, c) => {
-    if (!result.success) {
-      return c.json({ error: '参数验证失败', details: result.error.issues }, 400);
-    }
-  }),
   asyncHandler(async (c) => {
     const file = getUploadedFile(c, 'image');
     if (!file) {
       throw Errors.fileNotFound();
     }
 
-    const options = await c.req.json() as ImageProcessingOptions;
+    // 从表单字段获取options
+    const optionsStr = getFormField(c, 'options');
+    if (!optionsStr) {
+      throw Errors.validationError('缺少options参数');
+    }
+
+    let options: ImageProcessingOptions;
+    try {
+      options = JSON.parse(optionsStr);
+    } catch (error) {
+      throw Errors.validationError('options参数格式错误，必须是有效的JSON');
+    }
+
+    // 验证options
+    const validationResult = imageProcessingSchema.safeParse(options);
+    if (!validationResult.success) {
+      throw Errors.validationError(validationResult.error.issues);
+    }
 
     // 处理图片
     const processor = ImageProcessor.create(file.buffer);
@@ -94,18 +106,46 @@ images.post('/info', asyncHandler(async (c) => {
  * POST /images/resize
  */
 images.post('/resize',
-  zValidator('json', resizeSchema, (result, c) => {
-    if (!result.success) {
-      return c.json({ error: '参数验证失败', details: result.error.issues }, 400);
-    }
-  }),
   asyncHandler(async (c) => {
     const file = getUploadedFile(c, 'image');
     if (!file) {
       throw Errors.fileNotFound();
     }
 
-    const { width, height, fit = 'cover' } = await c.req.json() as ResizeOptions;
+    // 从表单字段获取options
+    const optionsStr = getFormField(c, 'options');
+    let options: ResizeOptions;
+    
+    if (optionsStr) {
+      try {
+        options = JSON.parse(optionsStr);
+      } catch (error) {
+        throw Errors.validationError('options参数格式错误，必须是有效的JSON');
+      }
+    } else {
+      // 如果没有options字段，尝试从单独的字段获取
+      const widthStr = getFormField(c, 'width');
+      const heightStr = getFormField(c, 'height');
+      const fit = getFormField(c, 'fit') || 'cover';
+      
+      if (!widthStr && !heightStr) {
+        throw Errors.validationError('缺少width或height参数');
+      }
+      
+      options = {
+        width: widthStr ? parseInt(widthStr) : undefined,
+        height: heightStr ? parseInt(heightStr) : undefined,
+        fit: fit as any
+      };
+    }
+
+    // 验证options
+    const validationResult = resizeSchema.safeParse(options);
+    if (!validationResult.success) {
+      throw Errors.validationError(validationResult.error.issues);
+    }
+
+    const { width, height, fit = 'cover' } = options;
 
     const processor = ImageProcessor.create(file.buffer);
     processor.resize(width, height, fit);
@@ -123,18 +163,48 @@ images.post('/resize',
  * POST /images/crop
  */
 images.post('/crop',
-  zValidator('json', cropSchema, (result, c) => {
-    if (!result.success) {
-      return c.json({ error: '参数验证失败', details: result.error.issues }, 400);
-    }
-  }),
   asyncHandler(async (c) => {
     const file = getUploadedFile(c, 'image');
     if (!file) {
       throw Errors.fileNotFound();
     }
 
-    const { left, top, width, height } = await c.req.json() as CropOptions;
+    // 从表单字段获取options
+    const optionsStr = getFormField(c, 'options');
+    let options: CropOptions;
+    
+    if (optionsStr) {
+      try {
+        options = JSON.parse(optionsStr);
+      } catch (error) {
+        throw Errors.validationError('options参数格式错误，必须是有效的JSON');
+      }
+    } else {
+      // 如果没有options字段，尝试从单独的字段获取
+      const leftStr = getFormField(c, 'left');
+      const topStr = getFormField(c, 'top');
+      const widthStr = getFormField(c, 'width');
+      const heightStr = getFormField(c, 'height');
+      
+      if (!leftStr || !topStr || !widthStr || !heightStr) {
+        throw Errors.validationError('缺少裁剪参数 (left, top, width, height)');
+      }
+      
+      options = {
+        left: parseInt(leftStr),
+        top: parseInt(topStr),
+        width: parseInt(widthStr),
+        height: parseInt(heightStr)
+      };
+    }
+
+    // 验证options
+    const validationResult = cropSchema.safeParse(options);
+    if (!validationResult.success) {
+      throw Errors.validationError(validationResult.error.issues);
+    }
+
+    const { left, top, width, height } = options;
 
     const processor = ImageProcessor.create(file.buffer);
     processor.crop(left, top, width, height);
