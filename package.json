@@ -1,5 +1,5 @@
 {
-  "name": "Image-Processing-API",
+  "name": "image-processing-api",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,10 +9,13 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "hono": "^4.8.3"
+    "@hono/zod-validator": "^0.7.0",
+    "hono": "^4.8.3",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.2.3",
+    "@cloudflare/workers-types": "^4.20250402.0",
     "vite": "^6.3.5",
     "vite-ssr-components": "^0.3.0",
     "wrangler": "^4.17.0"

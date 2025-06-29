@@ -8,13 +8,22 @@ importers:
 
   .:
     dependencies:
+      '@hono/zod-validator':
+        specifier: ^0.7.0
+        version: 0.7.0(hono@4.8.3)(zod@3.25.67)
       hono:
         specifier: ^4.8.3
         version: 4.8.3
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: ^1.2.3
-        version: 1.7.5(rollup@4.44.1)(vite@6.3.5)(workerd@1.20250617.0)(wrangler@4.22.0)
+        version: 1.7.5(rollup@4.44.1)(vite@6.3.5)(workerd@1.20250617.0)(wrangler@4.22.0(@cloudflare/workers-types@4.20250628.0))
+      '@cloudflare/workers-types':
+        specifier: ^4.20250402.0
+        version: 4.20250628.0
       vite:
         specifier: ^6.3.5
         version: 6.3.5
@@ -23,7 +32,7 @@ importers:
         version: 0.3.0
       wrangler:
         specifier: ^4.17.0
-        version: 4.22.0
+        version: 4.22.0(@cloudflare/workers-types@4.20250628.0)
 
 packages:
 
@@ -108,6 +117,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@4.20250628.0':
+    resolution: {integrity: sha512-V4HthfhtQU2vTpwLeUic8FTLgGSjglsGZMJc9jKBNYEU/k0A1rE55UgQoTb5blKQdGtpQKfVKs3FROeY/lXmbw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -419,6 +431,12 @@ packages:
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
+
+  '@hono/zod-validator@0.7.0':
+    resolution: {integrity: sha512-qe2ZE6sHFE98dcUrbYMtS3bAV8hqcCOflykvZga2S7XhmNSZzT+dIz4OuMILsjLHkJw9JMn912/dB7dQOmuPvg==}
+    peerDependencies:
+      hono: '>=3.9.0'
+      zod: ^3.25.0
 
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
@@ -958,6 +976,9 @@ packages:
   zod@3.22.3:
     resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
 
+  zod@3.25.67:
+    resolution: {integrity: sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==}
+
 snapshots:
 
   '@babel/code-frame@7.27.1':
@@ -1015,7 +1036,7 @@ snapshots:
     optionalDependencies:
       workerd: 1.20250617.0
 
-  '@cloudflare/vite-plugin@1.7.5(rollup@4.44.1)(vite@6.3.5)(workerd@1.20250617.0)(wrangler@4.22.0)':
+  '@cloudflare/vite-plugin@1.7.5(rollup@4.44.1)(vite@6.3.5)(workerd@1.20250617.0)(wrangler@4.22.0(@cloudflare/workers-types@4.20250628.0))':
     dependencies:
       '@cloudflare/unenv-preset': 2.3.3(unenv@2.0.0-rc.17)(workerd@1.20250617.0)
       '@mjackson/node-fetch-server': 0.6.1
@@ -1026,7 +1047,7 @@ snapshots:
       tinyglobby: 0.2.14
       unenv: 2.0.0-rc.17
       vite: 6.3.5
-      wrangler: 4.22.0
+      wrangler: 4.22.0(@cloudflare/workers-types@4.20250628.0)
       ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
@@ -1048,6 +1069,8 @@ snapshots:
 
   '@cloudflare/workerd-windows-64@1.20250617.0':
     optional: true
+
+  '@cloudflare/workers-types@4.20250628.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -1209,6 +1232,11 @@ snapshots:
     optional: true
 
   '@fastify/busboy@2.1.1': {}
+
+  '@hono/zod-validator@0.7.0(hono@4.8.3)(zod@3.25.67)':
+    dependencies:
+      hono: 4.8.3
+      zod: 3.25.67
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -1678,7 +1706,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250617.0
       '@cloudflare/workerd-windows-64': 1.20250617.0
 
-  wrangler@4.22.0:
+  wrangler@4.22.0(@cloudflare/workers-types@4.20250628.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.0
       '@cloudflare/unenv-preset': 2.3.3(unenv@2.0.0-rc.17)(workerd@1.20250617.0)
@@ -1689,6 +1717,7 @@ snapshots:
       unenv: 2.0.0-rc.17
       workerd: 1.20250617.0
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20250628.0
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil
@@ -1703,3 +1732,5 @@ snapshots:
       stacktracey: 2.1.8
 
   zod@3.22.3: {}
+
+  zod@3.25.67: {}
